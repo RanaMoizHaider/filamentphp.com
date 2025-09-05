@@ -59,6 +59,60 @@ Route::get('/api/{version?}', function (string $version = '4.x'): RedirectRespon
 })->where('version', '[1-4]+\.x')->name('api-docs');
 
 Route::prefix('/docs')->group(function () {
+    Route::get('/{slug}.md', function (string $slug): string | RedirectResponse {
+        $requestUri = request()->getRequestUri();
+
+        if (
+            str($requestUri)->endsWith('/') &&
+            (session()->get('trailingSlashRedirectFrom') !== $requestUri)
+        ) {
+            session()->flash('trailingSlashRedirectFrom', $requestUri);
+
+            return redirect(str($requestUri)->beforeLast('/'));
+        }
+
+        $slug = trim($slug, '/');
+
+        if (filled($slug) && (! str_contains($slug, '.x'))) {
+            return redirect()->route('docs.markdown', ['slug' => "4.x/{$slug}"]);
+        }
+
+        $filePath = base_path("docs/src/pages/{$slug}.mdx");
+
+        if (file_exists($filePath)) {
+            $content = file_get_contents($filePath);
+            
+            return response($content, 200, [
+                'Content-Type' => 'text/plain; charset=utf-8',
+                'Content-Disposition' => 'inline'
+            ]);
+        }
+
+        $filePath = base_path("docs/src/pages/{$slug}.md");
+
+        if (file_exists($filePath)) {
+            $content = file_get_contents($filePath);
+            
+            return response($content, 200, [
+                'Content-Type' => 'text/plain; charset=utf-8',
+                'Content-Disposition' => 'inline'
+            ]);
+        }
+
+        $filePath = base_path("docs/src/pages/{$slug}/index.mdx");
+
+        if (file_exists($filePath)) {
+            $content = file_get_contents($filePath);
+            
+            return response($content, 200, [
+                'Content-Type' => 'text/plain; charset=utf-8',
+                'Content-Disposition' => 'inline'
+            ]);
+        }
+
+        abort(404, 'Markdown file not found');
+    })->where('slug', '.*')->name('docs.markdown');
+    
     Route::get('/{slug?}', function (string $slug = null): string | RedirectResponse {
         $requestUri = request()->getRequestUri();
 
