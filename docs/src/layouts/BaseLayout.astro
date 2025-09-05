@@ -265,8 +265,8 @@ const canonicalURL = (currentVersion !== '4.x') ? new URL('docs/4.x', Astro.site
                                     
                                     try {
                                         const currentUrl = window.location.pathname;
-                                        const markdownUrl = 'https://filamentphp.com.test/docs/4.x/introduction/overview.md';
-                                        
+                                        const markdownUrl = currentUrl + '.md';
+  
                                         const response = await fetch(markdownUrl);
                                         
                                         if (!response.ok) {
