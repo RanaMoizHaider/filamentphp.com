@@ -250,52 +250,97 @@ const canonicalURL = (currentVersion !== '4.x') ? new URL('docs/4.x', Astro.site
     <div class="hidden xl:sticky xl:top-16 xl:-mr-6 xl:block xl:h-screen xl:flex-none xl:overflow-y-auto xl:overflow-x-visible xl:pb-16 xl:px-6 navigation-custom-scrollbar">
         <script async type="text/javascript" src="//cdn.carbonads.com/carbon.js?serve=CW7D627Y&placement=filamentphpcom" id="_carbonads_js"></script>
 
-        {contents && <nav aria-labelledby="on-this-page-title" class="my-6 w-56">
-            {
-                tableOfContents.length > 0 && (
-                    <>
-                        <h2 id="on-this-page-title" class="font-display text-sm font-bold text-stone-900 dark:text-white">
-                            On this page
-                        </h2>
-                        <ol role="list" class="mt-2 space-y-2 text-sm"
-                            x-data={`tableOfContents(${JSON.stringify(tableOfContents)})`}
-                            x-on:scroll.window="updateCurrentSection"
-                        >
-                            {tableOfContents.map((section) => (
-                                <li>
-                                    <h3>
-                                        <a
-                                            href={`#${section.slug}`}
-                                            x-on:click={`$nextTick(() => current = '${section.slug}')`}
-                                            class="inline-block transition duration-300 ease-out"
-                                            x-bind:class={`current == '${section.slug}' ? 'text-butter font-bold translate-x-1' : 'text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-gray-300 hover:translate-x-1'`}
-                                        >
-                                            {section.title}
-                                        </a>
-                                    </h3>
-                                    {section.children.length > 0 && (
-                                        <ol role="list" class="mt-2 space-y-2 pl-4 text-gray-500 dark:text-gray-300">
-                                            {section.children.map((subSection) => (
-                                                <li>
-                                                    <a
-                                                        href={`#${subSection.slug}`}
-                                                        x-on:click={`$nextTick(() => current = '${subSection.slug}')`}
-                                                        class="inline-block transition duration-300 ease-out"
-                                                        x-bind:class={`current == '${subSection.slug}' ? "text-butter translate-x-1" : "hover:text-gray-600 dark:hover:text-white hover:translate-x-1"`}
-                                                    >
-                                                        {subSection.title}
-                                                    </a>
-                                                </li>
-                                            ))}
-                                        </ol>
-                                    )}
-                                </li>
-                            ))}
-                        </ol>
-                    </>
-                )
-            }
-        </nav>}
+        {contents && (
+            <div class="my-6 w-56">
+                <div class="mb-4">
+                    <div class="mt-2">
+                        <a
+                            href="#"
+                            x-data="{
+                                copying: false,
+                                async copyMarkdown() {
+                                    if (this.copying) return;
+                                    
+                                    this.copying = true;
+                                    
+                                    try {
+                                        const currentUrl = window.location.pathname;
+                                        const markdownUrl = 'https://filamentphp.com.test/docs/4.x/introduction/overview.md';
+                                        
+                                        const response = await fetch(markdownUrl);
+                                        
+                                        if (!response.ok) {
+                                            throw new Error('Failed to fetch markdown content');
+                                        }
+                                        
+                                        const markdownContent = await response.text();
+                                        
+                                        await navigator.clipboard.writeText(markdownContent);
+                                        
+                                        setTimeout(() => {
+                                            this.copying = false;
+                                        }, 2000);
+                                    } catch (error) {
+                                        console.error('Failed to copy markdown:', error);
+                                        this.copying = false;
+                                    }
+                                }
+                            }"
+                            @click.prevent="copyMarkdown()"
+                            class="text-sm transition duration-300 ease-out"
+                            :class="copying ? 'text-butter font-bold' : 'text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-gray-300'"
+                            x-text="copying ? 'Copied!' : 'Copy as Markdown'"
+                        ></a>
+                    </div>
+                </div>
+                
+                <nav aria-labelledby="on-this-page-title">
+                {
+                    tableOfContents.length > 0 && (
+                        <>
+                            <h2 id="on-this-page-title" class="font-display text-sm font-bold text-stone-900 dark:text-white">
+                                On this page
+                            </h2>
+                            <ol role="list" class="mt-2 space-y-2 text-sm"
+                                x-data={`tableOfContents(${JSON.stringify(tableOfContents)})`}
+                                x-on:scroll.window="updateCurrentSection"
+                            >
+                                {tableOfContents.map((section) => (
+                                    <li>
+                                        <h3>
+                                            <a
+                                                href={`#${section.slug}`}
+                                                x-on:click={`$nextTick(() => current = '${section.slug}')`}
+                                                class="inline-block transition duration-300 ease-out"
+                                                x-bind:class={`current == '${section.slug}' ? 'text-butter font-bold translate-x-1' : 'text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-gray-300 hover:translate-x-1'`}
+                                            >
+                                                {section.title}
+                                            </a>
+                                        </h3>
+                                        {section.children.length > 0 && (
+                                            <ol role="list" class="mt-2 space-y-2 pl-4 text-gray-500 dark:text-gray-300">
+                                                {section.children.map((subSection) => (
+                                                    <li>
+                                                        <a
+                                                            href={`#${subSection.slug}`}
+                                                            x-on:click={`$nextTick(() => current = '${subSection.slug}')`}
+                                                            class="inline-block transition duration-300 ease-out"
+                                                            x-bind:class={`current == '${subSection.slug}' ? "text-butter translate-x-1" : "hover:text-gray-600 dark:hover:text-white hover:translate-x-1"`}
+                                                        >
+                                                            {subSection.title}
+                                                        </a>
+                                                    </li>
+                                                ))}
+                                            </ol>
+                                        )}
+                                    </li>
+                                ))}
+                            </ol>
+                        </>
+                    )
+                }
+            </nav>
+        </div>)}
     </div>
 </div>}
 
